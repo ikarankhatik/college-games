@@ -12,7 +12,7 @@ app.use(cors({
     exposedHeaders: ['Authorization']
   }));
 app.use(express.json());
-
+app.use('/uploads', express.static('uploads'))
 // use express router
 app.use('/api', require('./routes'));
 

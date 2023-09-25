@@ -53,6 +53,8 @@ const Students = () => {
       const path = "/api/student/get-all-student";
       const response = await Get(path);
 
+      console.log("res" , response.students);
+
       if (response.success) {
         dispatch(addStudent(response.students));
       } else {
@@ -87,23 +89,35 @@ const Students = () => {
     formData.append("age", studentData.age);
     formData.append("college", studentData.college);
     formData.append("photo", studentData.photo);
-    const addedStudent = await fetch('http://localhost:4000/api/student/create',{
-      method:'POST',
-      body: formData
-    })
-
-    if (addedStudent) {
-      addedStudent.student.college = { name: addedStudent.collegeName };
-
-      dispatch(addStudent(addedStudent.student));
-      setStudentData({
-        name: "",
-        college: "",
-        age: "",
-        photo: null,
+  
+    try {
+      const addedStudentResponse = await fetch('http://localhost:4000/api/student/create', {
+        method: 'POST',
+        body: formData
       });
+  
+      const addedStudent = await addedStudentResponse.json(); 
+  
+      if (addedStudent.success) { 
+        toast.success("Student data added Successfully");
+        console.log(addedStudent.student);
+        addedStudent.student.college = { name: addedStudent.collegeName };
+        dispatch(addStudent(addedStudent.student));
+        setStudentData({
+          name: "",
+          college: "",
+          age: "",
+          photo: null,
+        });
+      } else {
+        toast.error("Error creating student");
+      }
+    } catch (error) {
+      console.error("An error occurred while creating student:", error);
+      toast.error("An error occurred. Please try again later.");
     }
   };
+  
 
   const addStudentApi = async (data) => {
     const path = "/api/student/create";
@@ -353,7 +367,7 @@ const Students = () => {
                       />
                     ) : (
                       <img
-                        src={student?.photo}
+                        src={`http://localhost:4000/${student?.photo}`}
                         alt={student?.name}
                         className="w-16 h-16"
                       />

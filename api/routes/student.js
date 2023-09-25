@@ -9,30 +9,19 @@ const College = require("../models/college");
 const mongoose = require("mongoose");
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const destinationPath = path.join(__dirname, "./uploads/students");
-
-    // Log the values of __dirname and destinationPath for debugging
-    // console.log('__dirname:', __dirname);
-    //console.log('destinationPath:', destinationPath);
-    //console.log(req.body, file);
-
-    // Check if the directory exists, and create it if it doesn't
-    if (!fs.existsSync(destinationPath)) {
-      fs.mkdirSync(destinationPath, { recursive: true });
-    }
-
-    cb(null, destinationPath);
+  destination: function(req, file, cb) {
+    cb(null, './uploads/');
   },
-  filename: function (req, file, cb) {
+  filename: function(req, file, cb) {
     cb(null, new Date().toISOString() + file.originalname);
-  },
+  }
 });
 
 const fileFilter = (req, file, cb) => {
   const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
+    console.log("A");
     cb(null, true);
   } else {
     // Reject unsupported files with an error message
@@ -47,6 +36,7 @@ const upload = multer({
   },
   fileFilter: fileFilter,
 });
+//const upload = multer({ dest: './uploads/' }); 
 
 router.post("/create", (req, res) => {
   upload.single("photo")(req, res, async (err) => {
@@ -68,12 +58,12 @@ router.post("/create", (req, res) => {
           .status(400)
           .json({ error: "Unsupported file type", success: false });
       } else {
-        console.log("third");
         return res.status(500).json({ error: err.message, success: false });
       }
     }
     // Log the uploaded file path
-    console.log(req.body);
+    console.log(req.body.name);
+    console.log(req.file.path);
     //console.log("Uploaded file path:", req.file.path);
     try {
       const student = new Student({
