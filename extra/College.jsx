@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addCollege, deleteCollege, updateCollge } from "../store/collegeSlice";
-import { Fetch, Delete, Get, Update } from "../helper/dbFetch";
+import { Delete, Get, Update } from "../helper/dbFetch";
 import { toast } from "react-toastify";
 
 const College = () => {
   const [collegeData, setCollegeData] = useState({
     name: "",
     description: "",
+    image:null,
   });
+  const [selectedImageUrl, setSelectedImageUrl] = useState("");
 
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
   const collegeList = useSelector((state) => state.colleges);
   const dispatch = useDispatch();
+
+  
 
   useEffect(() => {
     getAllCollege();
@@ -33,42 +37,68 @@ const College = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCollegeData({
-      ...collegeData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const addedCollege = await addCollegeApi(collegeData);
-    if (addedCollege) {
-      dispatch(addCollege(addedCollege.savedCollege));
+    
+      const { name, value } = e.target;
+    if (name === "image") {
+      // Handle file input separately
+      const file = e.target.files[0];
+      // Display the selected image preview
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedImageUrl(imageUrl);
+      } else {
+        setSelectedImageUrl(""); // Clear the image URL if no file is selected
+      }
       setCollegeData({
-        name: "",
-        description: "",
+        ...collegeData,
+        [name]: file,
+      });
+    } else {
+      setCollegeData({
+        ...collegeData,
+        [name]: value,
       });
     }
   };
 
-  const addCollegeApi = async (data) => {
-    const path = "/api/college/create";
-    try {
-      const response = await Fetch(path, data);
-      if (response.success) {
-        toast.success("College data added Successfully");
-        return response;
-      } else {
-        toast.info("Enter other College Name");
-        return null;
-      }
-    } catch (error) {
-      console.error("An error occurred while creating college:", error);
-      toast.error("An error occurred. Please try again later.");
-      return null;
+  const handleSubmit = async (e) => {
+    
+    e.preventDefault();
+    console.log(collegeData);
+    let formData = new FormData();
+    formData.append("name", collegeData.name);
+    formData.append("description", collegeData.description);
+    formData.append("image", collegeData.image);
+   
+      const collegeData2 = await fetch(
+        "http://localhost:4000/api/college/create",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+    const addedCollege = await collegeData2.json();
+    
+    if (addedCollege.success) {      
+      dispatch(addCollege(addedCollege.savedCollege));
+      toast.success("College data added Successfully");
+      setCollegeData({
+        name: "",
+        description: "",
+        image:""
+      });
+      setSelectedImageUrl("");
+       // Reset the file input value to clear the selected file
+       const fileInput = document.querySelector('input[type="file"]');
+       if (fileInput) {
+         fileInput.value = ""; // Reset the file input value
+       }       
+    }else{
+      toast.info("Enter other College Name");
     }
   };
+
+ 
 
   const handleDelete = (id) => {
     deleteCollegeApi(id);
@@ -168,6 +198,25 @@ const College = () => {
                 required
               />
             </div>
+            <div className="mb-4">
+                <label className="block text-gray-600">Image:</label>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+                {selectedImageUrl && (
+                  <div>
+                    <img
+                      src={selectedImageUrl}
+                      alt="Selected"
+                      className="mt-2 max-h-40"
+                    />
+                  </div>
+                )}
+              </div>
             <button
               type="submit"
               className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
@@ -188,6 +237,7 @@ const College = () => {
               <tr>
                 <th className="px-4 py-2">College Name</th>
                 <th className="px-4 py-2">Description</th>
+                <th className="px-4 py-2">Image</th>
                 {isLoggedIn && <th className="px-4 py-2">Actions</th>}
               </tr>
             </thead>
@@ -227,6 +277,13 @@ const College = () => {
                     ) : (
                       college.description
                     )}
+                  </td>
+                  <td className="border px-4 py-2">
+                    <img
+                      src={`http://localhost:4000/${college?.image}`}
+                      alt={college?.name}
+                      className="w-16 h-16"
+                    />
                   </td>
                   {isLoggedIn && (
                     <td className="border px-4 py-2">

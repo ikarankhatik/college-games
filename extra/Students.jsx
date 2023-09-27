@@ -20,7 +20,8 @@ const Students = () => {
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
   const studentList = useSelector((state) => state.students);
   const dispatch = useDispatch();
-  const [editingStudentId, setEditingStudentId] = useState(null); 
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState("");
+  const [editingStudentId, setEditingStudentId] = useState(null);
   const [editedStudentData, setEditedStudentData] = useState({
     name: "",
     college: "",
@@ -53,7 +54,7 @@ const Students = () => {
       const path = "/api/student/get-all-student";
       const response = await Get(path);
 
-      console.log("res" , response.students);
+      console.log("res", response.students);
 
       if (response.success) {
         dispatch(addStudent(response.students));
@@ -69,9 +70,17 @@ const Students = () => {
     const { name, value } = e.target;
     if (name === "photo") {
       // Handle file input separately
+      const file = e.target.files[0];
+      // Display the selected image preview
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedPhotoUrl(imageUrl);
+      } else {
+        setSelectedPhotoUrl(""); // Clear the image URL if no file is selected
+      }
       setStudentData({
         ...studentData,
-        [name]: e.target.files[0], 
+        [name]: e.target.files[0],
       });
     } else {
       setStudentData({
@@ -84,31 +93,40 @@ const Students = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(studentData);
-    var formData = new FormData();
+    let formData = new FormData();
     formData.append("name", studentData.name);
     formData.append("age", studentData.age);
     formData.append("college", studentData.college);
     formData.append("photo", studentData.photo);
-  
+
     try {
-      const addedStudentResponse = await fetch('http://localhost:4000/api/student/create', {
-        method: 'POST',
-        body: formData
-      });
-  
-      const addedStudent = await addedStudentResponse.json(); 
-  
-      if (addedStudent.success) { 
+      const addedStudentResponse = await fetch(
+        "http://localhost:4000/api/student/create",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const addedStudent = await addedStudentResponse.json();
+
+      if (addedStudent.success) {
         toast.success("Student data added Successfully");
         console.log(addedStudent.student);
         addedStudent.student.college = { name: addedStudent.collegeName };
         dispatch(addStudent(addedStudent.student));
+        setSelectedPhotoUrl("");
         setStudentData({
           name: "",
           college: "",
           age: "",
           photo: null,
         });
+        // Reset the file input value to clear the selected file
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = ""; // Reset the file input value
+      }
       } else {
         toast.error("Error creating student");
       }
@@ -117,7 +135,6 @@ const Students = () => {
       toast.error("An error occurred. Please try again later.");
     }
   };
-  
 
   const addStudentApi = async (data) => {
     const path = "/api/student/create";
@@ -213,72 +230,6 @@ const Students = () => {
 
   return (
     <div className="container mx-auto p-4">
-      {isLoggedIn ? (
-        <div className="bg-gray-200 p-4 rounded-xl shadow-xl border">
-          <h2 className="text-2xl font-semibold mb-4">Student Information</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="mb-4">
-              <label className="block text-gray-600">Student Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={studentData.name}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-600">College Name:</label>
-              <select
-                name="college"
-                value={studentData.college}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="">Select a College</option>
-                {collegeOptions.map((college) => (
-                  <option key={college._id} value={college._id}>
-                    {college?.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-600">Age:</label>
-              <input
-                type="number"
-                name="age"
-                value={studentData.age}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-600">Image:</label>
-              <input
-                type="file"
-                name="photo"
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
-            >
-              Add Student
-            </button>
-          </form>
-        </div>
-      ) : (
-        ""
-      )}
-
       <div className="mt-8 m-10">
         <h2 className="text-2xl font-semibold mb-4">Student Details</h2>
         <div className="overflow-x-auto">
@@ -353,25 +304,11 @@ const Students = () => {
                     )}
                   </td>
                   <td className="border px-4 py-2">
-                    {editingStudentId === student._id ? (
-                      <input
-                        type="text"
-                        name="photo"
-                        value={editedStudentData.photo}
-                        onChange={(e) =>
-                          setEditedStudentData({
-                            ...editedStudentData,
-                            photo: e.target.value,
-                          })
-                        }
-                      />
-                    ) : (
-                      <img
-                        src={`http://localhost:4000/${student?.photo}`}
-                        alt={student?.name}
-                        className="w-16 h-16"
-                      />
-                    )}
+                    <img
+                      src={`http://localhost:4000/${student?.photo}`}
+                      alt={student?.name}
+                      className="w-16 h-16"
+                    />
                   </td>
                   {isLoggedIn && (
                     <td className="border px-4 py-2">

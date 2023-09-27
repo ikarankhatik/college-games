@@ -52,13 +52,13 @@ const Header = () => {
           </div>
 
           <div className="hidden md:flex space-x-5">
-            <Link to="/students" className="text-sm font-semibold" onClick={closeMobileMenu}>
+            <Link to="/student-list" className="text-sm font-semibold" onClick={closeMobileMenu}>
               Students
             </Link>
-            <Link to="/colleges" className="text-sm font-semibold" onClick={closeMobileMenu}>
+            <Link to="/college-list" className="text-sm font-semibold" onClick={closeMobileMenu}>
               Colleges
             </Link>
-            <Link to="/competetion" className="text-sm font-semibold" onClick={closeMobileMenu}>
+            <Link to="/competition-list" className="text-sm font-semibold" onClick={closeMobileMenu}>
               Competetions
             </Link>
           </div>
@@ -86,21 +86,21 @@ const Header = () => {
         {showMenu && (
           <div className="md:hidden bg-white text-black py-2">
             <Link
-              to="/students"
+              to="/student-list"
               className="block px-4 py-2 text-sm font-semibold"
               onClick={closeMobileMenu}
             >
               Students
             </Link>
             <Link
-              to="/colleges"
+              to="/college-list"
               className="block px-4 py-2 text-sm font-semibold"
               onClick={closeMobileMenu}
             >
               Colleges
             </Link>
             <Link
-              to="/competetion"
+              to="/competition-list"
               className="block px-4 py-2 text-sm font-semibold"
               onClick={closeMobileMenu}
             >

@@ -4,14 +4,15 @@ const College = require('../models/college');
 
 // Create a new Competition
 exports.create = async (req, res) => {
-    //console.log(req.body.data);
+    console.log(req.file.path);
   try {
-    const { name, description, college } = req.body.data;
-    console.log(name , description, college);
+    const { name, description, college } = req.body;
+    const image = req.file.path;
     const competition = new Competition({
       name,
       description,
       college,
+      image,      
       students: [], // Initialize an empty array for students
     });
 

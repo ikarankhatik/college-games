@@ -33,7 +33,7 @@ const Signin = () => {
     if (response.success) {       
       toast.success("Login Successull")
       dispatch(login());
-      navigate("/students");
+      navigate("/student-list");
     } else {
       toast.error("wrong credential");
 

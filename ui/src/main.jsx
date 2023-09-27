@@ -5,9 +5,12 @@ import Signup from './components/Signup.jsx';
 import Signin from './components/Signin.jsx';
 import './index.css';
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Students from './components/Students.jsx';
-import College from './components/College.jsx';
-import Competition from './components/Competition.jsx';
+import AddCollege from './components/AddCollege.jsx';
+import CollegeDetails from './components/CollegeDetails.jsx';
+import AddStudent from './components/AddStudent.jsx';
+import StudentDetail from './components/StudentDetail.jsx';
+import AddCompetition from './components/AddCompetition.jsx';
+import CompetitionDetail from './components/CompetitionDetail.jsx';
 
 const creatingRouter = createBrowserRouter([
   {
@@ -23,17 +26,29 @@ const creatingRouter = createBrowserRouter([
         element: <Signup />,
       },
       {
-        path: "/students",
-        element: <Students/>
+        path: "/add-student",
+        element: <AddStudent/>
       }, 
       {
-        path: "/colleges",
-        element: <College/>
+        path: "/student-list",
+        element: <StudentDetail/>
+      }, 
+      {
+        path: "/add-college",
+        element: <AddCollege/>
       },
       {
-        path: "/competetion",
-        element: <Competition/>
+        path: "/college-list",
+        element: <CollegeDetails/>
+      },
+      {
+        path: "/add-competition",
+        element: <AddCompetition/>
       },  
+      {
+        path: "/competition-list",
+        element:<CompetitionDetail/>
+      }, 
     ],
   },
 ]);

@@ -1,11 +1,18 @@
 const College = require('../models/college');
+const mongoose = require('mongoose');
 
 // Create a new college
 module.exports.create = async (req, res) => {
-   
+  console.log(req.body);
   try {
-    const college = new College(req.body.data);
+    const college = new College({
+      _id: new mongoose.Types.ObjectId(),
+      name: req.body.name,
+      description: req.body.description,
+      image: req.file.path,
+    });
     const savedCollege = await college.save();
+
     if(savedCollege){
         return res.json({
         success: true,
@@ -13,10 +20,11 @@ module.exports.create = async (req, res) => {
           savedCollege
         })
     }else{
-        return res.json({ success: false, message: "Not Created" });
+        return res.json({ success: false, message: "College Not Created" });
     }
     
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'An error occurred while creating the college asa kyu' });
   }
 };
