@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 
 const CompetitionDetail = () => {
-
   const [studentName, setStudentName] = useState("");
 
   const [studentOptions, setStudentOptions] = useState([]);
@@ -116,14 +115,14 @@ const CompetitionDetail = () => {
   };
   return (
     <div className="container mx-auto p-4 mb-10">
-         <div className="my-5">
-          <Link
-            className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
-            to="/add-competition"
-          >
-            Add Competition
-          </Link>
-        </div>
+      <div className="my-5">
+        <Link
+          className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
+          to="/add-competition"
+        >
+          Add Competition
+        </Link>
+      </div>
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Competitions</h2>
         <div className="overflow-x-auto">
@@ -147,28 +146,36 @@ const CompetitionDetail = () => {
                   </td>
                   <td className="border px-4 py-2">{competition.college}</td>
                   <td className="border px-4 py-2">
-                    <select
-                      name="student"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      className="w-full p-2 border rounded"
-                      required
-                    >
-                      <option value="">Select a Student</option>
-                      {studentOptions?.map((student) => (
-                        <option key={student._id} value={student._id}>
-                          {student?.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      className="bg-orange-500 text-white py-1 px-2 rounded mt-2"
-                      onClick={() =>
-                        handleAddStudent(competition._id, studentName)
-                      }
-                    >
-                      Add Student
-                    </button>
+                    {isLoggedIn ? (
+                      <>
+                        {" "}
+                        <select
+                          name="student"
+                          value={studentName}
+                          onChange={(e) => setStudentName(e.target.value)}
+                          className="w-full p-2 border rounded"
+                          required
+                        >
+                          <option value="">Select a Student</option>
+                          {studentOptions?.map((student) => (
+                            <option key={student._id} value={student._id}>
+                              {student?.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="bg-orange-500 text-white py-1 px-2 rounded mt-2"
+                          onClick={() =>
+                            handleAddStudent(competition._id, studentName)
+                          }
+                        >
+                          Add Student
+                        </button>
+                      </>
+                    ) : (
+                      ""
+                    )}
+
                     {/* Display added students */}
                     <div>
                       <strong>Added Students:</strong>
