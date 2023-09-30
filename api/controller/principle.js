@@ -3,7 +3,7 @@ const Principle = require("../models/principle");
 
 // sign up of the principle controller
 module.exports.signUp = async function (req, res) {
-  console.log(req.body);
+  
     try {
       //finding principle into the data base
       const principle = await Principle.findOne({ email: req.body.data.email });
@@ -30,11 +30,11 @@ module.exports.signUp = async function (req, res) {
 
 
 // checking the sign in data and sending the response
-module.exports.signIn = async function (req, res) {    
+module.exports.signIn = async function (req, res) {   
     try {      
       const principle = await Principle.findOne({
-        email: req.body.data.email,
-        password: req.body.data.password,
+        email: req.body.email,
+        password: req.body.password,
       });
       //if principle is in the based than only login
       if (principle) {
@@ -50,3 +50,18 @@ module.exports.signIn = async function (req, res) {
       return res.status(500).json({ success: false, message: err.message });
     }
   };
+
+
+// Logout controller
+module.exports.logout = function (req, res) {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Error during logout' });
+    }
+    res.json({ success: true, message: 'Logout successful' });
+  });
+};
+
+
+
+

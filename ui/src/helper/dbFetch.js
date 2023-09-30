@@ -6,9 +6,9 @@ export async function Fetch(path, data) {
         headers: {
           "Content-Type": "application/json",          
         },
-        body: JSON.stringify({
-          data,
-        }),
+        body: JSON.stringify(
+          data
+        ),
       });
       const body = await response.text();     
       const result = JSON.parse(body);

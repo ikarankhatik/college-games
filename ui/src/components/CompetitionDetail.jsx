@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 const CompetitionDetail = () => {
   const [studentName, setStudentName] = useState("");
 
+  const [selectedStudents, setSelectedStudents] = useState({}); // Initialize selectedStudents
+
   const [studentOptions, setStudentOptions] = useState([]);
 
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
@@ -148,30 +150,37 @@ const CompetitionDetail = () => {
                   <td className="border px-4 py-2">
                     {isLoggedIn ? (
                       <>
-                        {" "}
-                        <select
-                          name="student"
-                          value={studentName}
-                          onChange={(e) => setStudentName(e.target.value)}
-                          className="w-full p-2 border rounded"
-                          required
-                        >
-                          <option value="">Select a Student</option>
-                          {studentOptions?.map((student) => (
-                            <option key={student._id} value={student._id}>
-                              {student?.name}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          className="bg-orange-500 text-white py-1 px-2 rounded mt-2"
-                          onClick={() =>
-                            handleAddStudent(competition._id, studentName)
-                          }
-                        >
-                          Add Student
-                        </button>
-                      </>
+                      <select
+                      name={`student-${competition._id}`} // Use a unique name based on competition ID
+                      value={selectedStudents[competition._id] || ""}
+                      onChange={(e) =>
+                        setSelectedStudents({
+                          ...selectedStudents,
+                          [competition._id]: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 border rounded"
+                      required
+                    >
+                      <option value="">Select a Student</option>
+                      {studentOptions?.map((student) => (
+                        <option key={student._id} value={student._id}>
+                          {student?.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="bg-orange-500 text-white py-1 px-2 rounded mt-2"
+                      onClick={() =>
+                        handleAddStudent(
+                          competition._id,
+                          selectedStudents[competition._id]
+                        )
+                      }
+                    >
+                      Add Student
+                    </button>
+                    </>
                     ) : (
                       ""
                     )}

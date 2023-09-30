@@ -5,6 +5,7 @@ import { logout } from "../store/principleSlice";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Get } from '../helper/dbFetch';
 
 const Header = () => {
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
@@ -12,7 +13,7 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const [signin, setSignin] = useState("Signin");
+  const [signin, setSignin] = useState("Sign Up");
   const [showMenu, setShowMenu] = useState(false); // Add state for mobile menu
 
   const handleLoginSignup = () => {
@@ -23,12 +24,18 @@ const Header = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Dispatch the logout action to update the login state
-    dispatch(logout());
-    // Redirect the user to the home screen
+    const path = "/api/principle/logout";
+    const response = await Get(path);
+    if(response.success){
+      dispatch(logout());
+      // Redirect the user to the home screen
     navigate("/");
-    toast.success("User logged out");
+    toast.success(response.message);
+    }else{
+      toast.error(response.message);
+    }    
   };
 
   const toggleMobileMenu = () => {

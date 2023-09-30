@@ -62,7 +62,7 @@ const Signup = () => {
         setEmail('');
         setPassword('');
       } else {
-        toast.info('User already exists');
+        toast.info(response.message);
       }
     } catch (error) {
       console.error('Error submitting form:', error);

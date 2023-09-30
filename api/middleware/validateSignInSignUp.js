@@ -9,7 +9,7 @@ const signUpSchema = Joi.object({
 
 const signInSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
+  password: Joi.string().required(),
 });
 
 // Middleware to validate sign-up data
