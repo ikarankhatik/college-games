@@ -8,6 +8,8 @@ const Student = require("../models/student");
 const College = require("../models/college");
 const mongoose = require("mongoose");
 
+const { validateStudentData } = require('../middleware/validateSchema');
+
 // const storage = multer.diskStorage({
 //   destination: function(req, file, cb) {
 //     cb(null, './uploads/');
@@ -38,7 +40,7 @@ const mongoose = require("mongoose");
 // });
 const upload = multer({ dest: './uploads/' }); 
 
-router.post("/create", upload.single("photo"), studentController.createStudent);   
+router.post("/create", upload.single("photo"), validateStudentData, studentController.createStudent);   
 router.delete("/delete/:id", studentController.deleteStudent);
 router.get("/get-all-student", studentController.getAllStudents);
 router.put("/update/:id", studentController.updateStudent);

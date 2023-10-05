@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addCompetition } from "../store/competitionSlice";
 import { Get } from "../helper/dbFetch";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AddCompetition = () => {
+  const navigate = useNavigate();
   const [competitionName, setCompetitionName] = useState("");
   const [competitionDescription, setCompetitionDescription] = useState("");
   const [collegeName, setCollegeName] = useState("");
@@ -16,7 +18,8 @@ const AddCompetition = () => {
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
 
   const dispatch = useDispatch();
-
+  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
+  
   const handleImageChange = (e) => {
     e.preventDefault();
     const file = e.target.files[0];
@@ -103,6 +106,12 @@ const AddCompetition = () => {
       console.error("An error occurred while adding competition:", error);
     }
   };
+
+  if(isLoggedIn === false){
+    navigate('/');
+    toast.info("You need to login first")
+    return null;
+  }
 
   return (
     <div className="container mx-auto p-4 mb-10">

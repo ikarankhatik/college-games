@@ -1,4 +1,6 @@
 const Principle = require("../models/principle");
+const jwt = require('jsonwebtoken'); 
+const mongoose = require('mongoose');
 
 
 // sign up of the principle controller
@@ -28,6 +30,12 @@ module.exports.signUp = async function (req, res) {
   };
 
 
+  const signToken = userID =>{
+    return jwt.sign({
+        iss : process.env.JWT_KEY,
+        sub : userID
+    },process.env.JWT_KEY,{expiresIn : "1h"});
+}
 
 // checking the sign in data and sending the response
 module.exports.signIn = async function (req, res) {   
@@ -38,10 +46,14 @@ module.exports.signIn = async function (req, res) {
       });
       //if principle is in the based than only login
       if (principle) {
-        return res.json({
+        // If user is authenticated, create and send a JWT token
+         const token = signToken(principle._id)
+         
+         res.cookie('access_token', token, { sameSite: 'None' });
+         res.json({
           success: true,
           message: "sign in successfully",
-          principle
+          principle         
         });
       } else {
         return res.json({ success: false, message: "Wrong credential" });
@@ -51,16 +63,29 @@ module.exports.signIn = async function (req, res) {
     }
   };
 
-
-// Logout controller
-module.exports.logout = function (req, res) {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: 'Error during logout' });
+module.exports.logout = (req, res) => {
+    try {
+      // Clear the 'access_token' cookie
+      res.clearCookie('access_token');
+  
+      // Send a JSON response indicating successful logout
+      res.json({
+        success: true,
+        message: "Logout successfully",
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Send an error response
+      res.status(500).json({
+        success: false,
+        message: "An error occurred during logout",
+      });
     }
-    res.json({ success: true, message: 'Logout successful' });
-  });
-};
+  };
+  
+
+
+
 
 
 
