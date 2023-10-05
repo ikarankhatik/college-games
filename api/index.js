@@ -3,51 +3,22 @@ require('dotenv').config();
 const app = express();
 const db = require('./config/mongoose');
 const cors = require('cors');
-const multer = require('multer');
-const session = require('express-session');
-const mongoose = require('mongoose');
-const passport = require('passport');
-const passportLocal = require("./middleware/passportLocalStrategy");
-const MongoDBStore = require('connect-mongodb-session')(session);
+const cookieParser = require('cookie-parser');
+const passport = require('passport')
 
-// Compatible for cross-origin requests
+
 app.use(cors({
+  origin: 'http://localhost:5173', // Replace with the actual origin of your client-side code
   exposedHeaders: ['Authorization'],
+  credentials: true, // Allow credentials (e.g., cookies)
 }));
+app.use(cookieParser());
 app.use(express.json());
 
-const store = new MongoDBStore({
-  uri: process.env.MONGO_URL,
-  collection: 'sessions',
-  expires: 60 * 60 * 24, // Session TTL in seconds (1 day)
-}, (error) => {
-  if (error) {
-    console.error('Error initializing MongoDBStore:', error);
-  }
-});
-
-// Handle MongoDBStore errors
-store.on('error', (error) => {
-  console.error('MongoDBStore error:', error);
-});
-
-app.use(
-  session({
-    name: 'ipangram',
-    secret: 'basvbawbha',
-    saveUninitialized: false,
-    resave: false,
-    cookie: {
-      maxAge: 60 * 60 * 1000, // Session expiration time
-    },
-    store: store,
-  })
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use('/uploads', express.static('uploads'));
+app.use(passport.initialize());
+
 
 // Use express router
 app.use('/api', require('./routes'));

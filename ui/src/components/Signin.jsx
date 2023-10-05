@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { Fetch } from '../helper/dbFetch';
 import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../store/principleSlice';
 import { useNavigate } from 'react-router-dom';
+
 
 const Signin = () => {
   // Initialize state variables for email and password
@@ -14,6 +15,7 @@ const Signin = () => {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
   
 
   // Event handler for form submission
@@ -30,7 +32,9 @@ const Signin = () => {
   async function signInApi(data) {
     const path = "/api/principle/sign-in";
     const response = await Fetch(path, data);
-    if (response.success) {       
+    // Storing the token in localStorage
+    console.log(response);
+        if (response.success) {       
       toast.success("Login Successull")
       dispatch(login());
       navigate("/student-list");
@@ -38,6 +42,10 @@ const Signin = () => {
       toast.error("wrong credential");
 
     }
+  }
+  if(isLoggedIn){
+    navigate('/student-list');    
+    return null;
   }
 
   return (

@@ -6,10 +6,13 @@ export async function Fetch(path, data) {
         headers: {
           "Content-Type": "application/json",          
         },
+        redirect: 'follow',
+        credentials: 'include',
         body: JSON.stringify(
           data
         ),
       });
+      console.log(response);
       const body = await response.text();     
       const result = JSON.parse(body);
       return result;
@@ -24,13 +27,27 @@ export async function Fetch(path, data) {
 
   export async function Get(query) {
     const endpoint = "http://localhost:4000";   
-    const res = await fetch(endpoint + query);
-    //console.log("response show data " ,res);
-    const body = await res.text();    
-    const response = JSON.parse(body);
-    //console.log("Body response text",response);
-    return response;
-  } 
+    const res = await fetch(endpoint + query, {
+      method: "GET",
+      credentials: 'include', // Include cookies in the request
+    });
+    
+    if (!res) {
+      console.error(`Request failed with status ${res.status}`);
+      return null; // Or throw an error if you prefer
+    }
+  
+    const body = await res.text();
+  
+    try {
+      const response = JSON.parse(body);
+      return response;
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return null; // Or throw an error if you prefer
+    }
+  }
+  
 
   export async function Delete(path) {
     try {

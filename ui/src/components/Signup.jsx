@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, } from 'react';
 import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { Fetch } from '../helper/dbFetch';
@@ -13,6 +14,7 @@ const Signup = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +77,12 @@ const Signup = () => {
   async function signUpApi(data) {
     const path = '/api/principle/sign-up';
     return await Fetch(path, data);
+  }
+
+  if(isLoggedIn){
+    navigate('/student-list');
+    toast.info("Already logged In")
+    return null;
   }
 
   return (

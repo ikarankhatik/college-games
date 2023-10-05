@@ -1,4 +1,4 @@
-const Competition = require('../models/Competition'); 
+const Competition = require('../models/competition'); 
 const Student = require('../models/student'); 
 const College = require('../models/college'); 
 

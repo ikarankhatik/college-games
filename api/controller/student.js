@@ -12,7 +12,10 @@ exports.createStudent = async (req, res) => {
       name: req.body.name,
       age: req.body.age,
       photo: req.file.path,
-      college: req.body.college
+      college: req.body.college,
+      personalData: req.body.personalData,
+      date: req.body.date,
+      interestedGames: req.body.interestedGames
     });   
 
     // Save the student

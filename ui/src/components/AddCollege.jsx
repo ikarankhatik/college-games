@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addCollege } from "../store/collegeSlice";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AddCollege = () => {
+  const navigate = useNavigate();
   const [collegeData, setCollegeData] = useState({
     name: "",
     description: "",
@@ -74,6 +76,12 @@ const AddCollege = () => {
       toast.info("Enter other College Name");
     }
   };
+
+  if(isLoggedIn === false){
+    navigate('/');
+    toast.info("You need to login first")
+    return null;
+  }
 
   return (
     <div className="container mx-auto p-4">
