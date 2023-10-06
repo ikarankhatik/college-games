@@ -4,6 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { Fetch } from '../helper/dbFetch';
+import {loadStripe} from '@stripe/stripe-js/pure';
+
+
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -54,7 +57,9 @@ const Signup = () => {
     setIsSubmitting(true);
 
     const data = { name, email, password }; // Updated: Remove username from data
-
+    //calling payment method
+     const res = await makePayment();
+     console.log(res);
     try {
       const response = await signUpApi(data);
       if (response.success) {
@@ -85,6 +90,37 @@ const Signup = () => {
     return null;
   }
 
+  //payment integration
+
+  const makePayment = async () => {
+    const stripe = await loadStripe("pk_test_51NxmblSEekr2cLoVVQrIJreB75cVLFsuONj6iHsr1pMELWtXFkeuF4LtZGK62fDZC0NkrpMLkZ4OO3uocj9jd05O00hohuqCku")
+    const body = {
+      amount: 100,
+      description: "Test payment",
+      qnty:1,
+      name:'Payment for Registration'
+    }
+
+    const headers = {
+      "Content-Type":"application/json"
+    }
+    const response = await fetch("http://localhost:4000/api/stripe/create-checkout-session", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    })
+
+    const session = await response.json();
+    const result = stripe.redirectToCheckout({
+      sessionId:session.id
+    })
+
+    if(result.error){
+      console.log(result.error);
+    }
+    return result;
+  }
+
   return (
     <>
       <div className="min-h-screen flex mt-20 justify-center">
@@ -113,8 +149,8 @@ const Signup = () => {
               <input
                 className={`w-full p-2 border rounded-md ${emailError ? 'border-red-500' : ''}`}
                 type="text"
-                id="useremail"
-                name="useremail"
+                id="email"
+                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 
