@@ -11,7 +11,7 @@ module.exports.signUp = async function (req, res) {
       const principle = await Principle.findOne({ email: req.body.data.email });
       //if principle is not present in the data base then only create the principle
       if (!principle) {
-        const newPrinciple = await Principle.create(req.body.data);
+        const newPrinciple = await Principle.create(req.body);
         
         //sending the response to the database
         return res.json({

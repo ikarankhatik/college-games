@@ -6,5 +6,5 @@ router.use('/principle', require('./principle'));
 router.use('/competition', require('./competition'));
 router.use('/college', require('./college'));
 router.use('/student', require('./student'));
-
+router.use('/stripe',require('./stripe'))
 module.exports = router;
