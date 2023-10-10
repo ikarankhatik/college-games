@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Get } from '../helper/dbFetch';
+import { unsubscribed } from "../store/stripeSlice";
 
 const Header = () => {
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
@@ -30,6 +31,7 @@ const Header = () => {
     const response = await Get(path);
     if(response.success){
       dispatch(logout());
+      dispatch(unsubscribed());
       // Redirect the user to the home screen
     navigate("/");
     toast.success(response.message);
@@ -67,6 +69,9 @@ const Header = () => {
             </Link>
             <Link to="/competition-list" className="text-sm font-semibold" onClick={closeMobileMenu}>
               Competetions
+            </Link>
+            <Link to="/subscription" className="text-sm font-semibold" onClick={closeMobileMenu}>
+            Subscription
             </Link>
           </div>
 
@@ -113,6 +118,14 @@ const Header = () => {
             >
               Competetions
             </Link>
+            <Link
+              to="/subscription"
+              className="block px-4 py-2 text-sm font-semibold"
+              onClick={closeMobileMenu}
+            >
+              Subscription
+            </Link>
+
           </div>
         )}
       </div>

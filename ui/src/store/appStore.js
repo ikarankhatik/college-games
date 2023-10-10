@@ -2,7 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import principleReducer from "./principleSlice";
 import studentReducer from "./studentSlice";
 import collegeReducer from "./collegeSlice";
-import competitionReducer from "./competitionSlice"
+import competitionReducer from "./competitionSlice";
+import stripeReducer from './stripeSlice';
 
 const appStore = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const appStore = configureStore({
     students: studentReducer,
     colleges:collegeReducer,
     competitions: competitionReducer,
+    stripe: stripeReducer,
   },
 });
 

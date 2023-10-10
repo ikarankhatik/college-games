@@ -14,11 +14,17 @@ import AddStudent from './components/AddStudent.jsx';
 import StudentDetail from './components/StudentDetail.jsx';
 import AddCompetition from './components/AddCompetition.jsx';
 import CompetitionDetail from './components/CompetitionDetail.jsx';
+import SubscriptionPrice from "./components/SubscriptionPrice";
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import SubscriberAccount from "./components/SubscriberAccount";
+const stripePromise = loadStripe('pk_test_51NxmblSEekr2cLoVVQrIJreB75cVLFsuONj6iHsr1pMELWtXFkeuF4LtZGK62fDZC0NkrpMLkZ4OO3uocj9jd05O00hohuqCku');
 
 function App() {
   return (
     
     <Provider store={appStore}>
+      <Elements stripe={stripePromise}>
      <Header/>
      <Outlet/>
      <ToastContainer
@@ -33,6 +39,7 @@ function App() {
       pauseOnHover
       theme="colored"
     />
+    </Elements>
     </Provider>
     
   )
@@ -75,6 +82,14 @@ const creatingRouter = createBrowserRouter([
         path: "/competition-list",
         element:<CompetitionDetail/>
       }, 
+      {
+        path: "/subscription",
+        element:<SubscriptionPrice/>
+      },
+      {
+        path: "/user-account",
+        element:<SubscriberAccount/>
+      },
     ],
   },
 ]);

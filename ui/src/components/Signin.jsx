@@ -5,6 +5,7 @@ import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../store/principleSlice';
+import { subscribed, unsubscribed } from '../store/stripeSlice';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -16,14 +17,11 @@ const Signin = () => {
 
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
-  
 
   // Event handler for form submission
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
-    
-    console.log('Email:', email);
-    console.log('Password:', password);
+  
     const data = {email, password}
     signInApi(data)
     // You can send the email and password to your server for authentication here
@@ -34,10 +32,14 @@ const Signin = () => {
     const response = await Fetch(path, data);
     // Storing the token in localStorage
     console.log(response);
-        if (response.success) {       
-      toast.success("Login Successull")
-      dispatch(login());
-      navigate("/student-list");
+        if (response.success) {            
+            toast.success("Login Successull")
+            dispatch(login());
+            if(response.isSubcribe){
+              dispatch(subscribed());
+              console.log("user subscribed");
+            }
+            navigate("/student-list");               
     } else {
       toast.error("wrong credential");
 

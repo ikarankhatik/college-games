@@ -9,7 +9,7 @@ const CollegeDetails = () => {
   const collegeList = useSelector((state) => state.colleges);
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
-
+  const isSubscribed = useSelector((state) => state.stripe.isSubscribed);
   useEffect(() => {
     getAllCollege();
   }, []);

@@ -19,7 +19,7 @@ const AddCompetition = () => {
 
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
-  
+  const isSubscribed = useSelector((state) => state.stripe.isSubscribed);
   const handleImageChange = (e) => {
     e.preventDefault();
     const file = e.target.files[0];
@@ -106,10 +106,16 @@ const AddCompetition = () => {
       console.error("An error occurred while adding competition:", error);
     }
   };
-
   if(isLoggedIn === false){
-    navigate('/');
-    toast.info("You need to login first")
+    toast.info("You need to Login first ")
+    navigate('/');    
+    return null;
+  }
+
+  if(isSubscribed === false){
+    toast.info("You need to subscribe first")
+    navigate('/subscription');
+    
     return null;
   }
 

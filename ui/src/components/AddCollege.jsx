@@ -14,6 +14,7 @@ const AddCollege = () => {
   });
 
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
+  const isSubscribed = useSelector((state) => state.stripe.isSubscribed);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
   const dispatch = useDispatch();
 
@@ -77,9 +78,14 @@ const AddCollege = () => {
     }
   };
 
-  if(isLoggedIn === false){
-    navigate('/');
-    toast.info("You need to login first")
+if(isLoggedIn === false){
+    toast.info("You need to Login first ")
+    navigate('/');    
+    return null;
+  }
+  if(isSubscribed === false){
+    toast.info("You need to subscribe first ")
+    navigate('/subscription');    
     return null;
   }
 
