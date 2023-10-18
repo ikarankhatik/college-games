@@ -1,124 +1,60 @@
-import React, { useState, } from 'react';
+import React from 'react';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { Fetch } from '../helper/dbFetch';
-import {loadStripe} from '@stripe/stripe-js/pure';
-
-
+import { loadStripe } from '@stripe/stripe-js/pure';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nameError, setNameError] = useState(''); // Updated: Use nameError instead of usernameError
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);  
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setNameError(''); // Updated: Reset nameError
-    setEmailError('');
-    setPasswordError('');
-
-    if (!name || name.length < 3) { // Updated: Validate the name field
-      if(!name){
-        setNameError("Name is required.")
-      }else{
-        setNameError('Name must be at least 3 characters long');
-      }      
-      return;
-    }
-
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      if(!email){
-        setEmailError("Email is require");
-      }else{
-        setEmailError('Please enter a valid email address');
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+    validationSchema : Yup.object({
+      name: Yup.string()
+        .required('Name is required')
+        .min(3, 'Name must be at least 3 characters long'),
+      email: Yup.string()
+        .required('Email is required')
+        .email('Please enter a valid email address'),
+      password: Yup.string()
+        .required('Password is required')
+        .min(6, 'Password must be at least 6 characters long'),
+    }),
+    onSubmit: async (values) => {
+      console.log(values);
+      try {
+        const response = await signUpApi(values);
+        if (response.success) {
+          toast.success('Signup successful');
+          navigate('/');
+          formik.resetForm();
+        } else {
+          toast.info(response.message);
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        toast.error('An error occurred while signing up');
       }
-      
-      return;
-    }
-
-    if (password.length < 6) {
-      if(!password){
-        setPasswordError("Password is require!.");
-      }else{
-        setPasswordError('Password must be at least 6 characters long');
-      }
-      
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const data = { name, email, password }; // Updated: Remove username from data
-    //calling payment method
-     const res = await makePayment();
-     console.log(res);
-    try {
-      const response = await signUpApi(data);
-      if (response.success) {
-        toast.success('Signup successful');
-        navigate('/');
-        setName('');
-        setEmail('');
-        setPassword('');
-      } else {
-        toast.info(response.message);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('An error occurred while signing up');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+  });
 
   async function signUpApi(data) {
     const path = '/api/principle/sign-up';
     return await Fetch(path, data);
   }
 
-  if(isLoggedIn){
-    navigate('/student-list');
-    toast.info("Already logged In")
-    return null;
-  }
-
-  //payment integration
-
-  const makePayment = async () => {
-    const stripe = await loadStripe("pk_test_51NxmblSEekr2cLoVVQrIJreB75cVLFsuONj6iHsr1pMELWtXFkeuF4LtZGK62fDZC0NkrpMLkZ4OO3uocj9jd05O00hohuqCku")
-    const body = {
-      amount: 100,
-      description: "Test payment",
-      qnty:1,
-      name:'Payment for Registration'
-    }
-
-    const headers = {
-      "Content-Type":"application/json"
-    }
-    const response = await fetch("http://localhost:4000/api/stripe/create-checkout-session", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(body),
-    })
-
-    const session = await response.json();
-    const result = stripe.redirectToCheckout({
-      sessionId:session.id
-    })
-
-    if(result.error){
-      console.log(result.error);
-    }
-    return result;
+  if(isLoggedIn === true){
+    navigate("/student-list")
   }
 
   return (
@@ -126,59 +62,71 @@ const Signup = () => {
       <div className="min-h-screen flex mt-20 justify-center">
         <div className="bg-gray-300 p-8 rounded-lg shadow-md w-[400px] h-[500px]">
           <h2 className="text-center text-2xl font-semibold mb-4">Sign Up</h2>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={formik.handleSubmit}>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
                 Name
               </label>
               <input
-                className={`w-full p-2 border rounded-md ${nameError ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-md ${
+                  formik.touched.name && formik.errors.name ? 'border-red-500' : ''
+                }`}
                 type="text"
                 id="name"
                 name="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
               />
-              {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
+              {formik.touched.name && formik.errors.name && (
+                <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
+              )}
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="useremail">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                 Email
               </label>
               <input
-                className={`w-full p-2 border rounded-md ${emailError ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-md ${
+                  formik.touched.email && formik.errors.email ? 'border-red-500' : ''
+                }`}
                 type="text"
                 id="email"
                 name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
               />
-              {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
+              {formik.touched.email && formik.errors.email && (
+                <p className="text-red-500 text-sm mt-1">{formik.errors.email}</p>
+              )}
             </div>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                 Password
               </label>
               <input
-                className={`w-full p-2 border rounded-md ${passwordError ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-md ${
+                  formik.touched.password && formik.errors.password ? 'border-red-500' : ''
+                }`}
                 type="password"
                 id="password"
                 name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
               />
-              {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+              {formik.touched.password && formik.errors.password && (
+                <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+              )}
             </div>
             <div className="text-center">
               <button
                 className="bg-orange-500 text-black font-bold py-2 px-4 rounded-md hover:bg-orange-600"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={formik.isSubmitting}
               >
-                {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                {formik.isSubmitting ? 'Signing Up...' : 'Sign Up'}
               </button>
             </div>
           </form>

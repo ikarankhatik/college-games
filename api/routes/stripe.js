@@ -10,7 +10,7 @@ const stripeController = require('../controller/stripe');
 router.get('/config', stripeController.config);
 router.post('/create-subscription', stripeController.createSubscription);
 // router.post('/check-subscription', stripeController.checkSubscription);                             
-//router.get('/subscriptions', stripeController.subscriptions);
+router.get('/subscriptions', stripeController.subscriptions);
 //router.get('/customer-detail', stripeController.customerDetails);
 // router.post('/cancel-subscription', stripeController.cancelSubscription);
 module.exports = router;

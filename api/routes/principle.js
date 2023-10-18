@@ -11,7 +11,7 @@ router.post('/sign-up', validateSignUpData,  principleController.signUp);
 //user signin route
 router.post('/sign-in', validateSignInData, passport.authenticate('local',{session : false}), principleController.signIn);
 
-router.get('/logout', passport.authenticate('jwt',{session : false}), principleController.logout);
+router.get('/logout',  principleController.logout);
 
 
 module.exports = router;

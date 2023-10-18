@@ -5,28 +5,18 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { Get } from "../helper/dbFetch";
 import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 const AddStudent = () => {
   const navigate = useNavigate();
-  const [studentData, setStudentData] = useState({
-    name: "",
-    age: "",
-    photo: null,
-    college: "",
-    personalData: {
-      gender: "",
-      address: "",
-      hobbies: [],
-    },
-    date: "",
-    interestedGames: [],
-  });
-
-  const [collegeOption, setCollegeOption] = useState([]);
   const dispatch = useDispatch();
-  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState("");
   const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
   const isSubscribed = useSelector((state) => state.stripe.isSubscribed);
+
+  const [collegeOption, setCollegeOption] = useState([]);
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState("");
+
   useEffect(() => {
     getAllCollege();
   }, []);
@@ -46,75 +36,84 @@ const AddStudent = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "photo") {
-      const file = e.target.files[0];
-      if (file) {
-        const imageUrl = URL.createObjectURL(file);
-        setSelectedPhotoUrl(imageUrl);
-      } else {
-        setSelectedPhotoUrl("");
-      }
-      setStudentData({
-        ...studentData,
-        [name]: e.target.files[0],
-      });
-    } else if (name === "gender" || name === "address") {
-      setStudentData({
-        ...studentData,
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      age: "",
+      college: "",
+      photo: null,
+      gender: "",
+      address: "",
+      hobbies: "",
+      interestedGames: [],
+      date: "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Name is required"),
+      age: Yup.number()
+        .required("Age is required")
+        .positive("Age must be positive")
+        .integer("Age must be an integer"),
+      college: Yup.string().required("College is required"),
+      photo: Yup.mixed().required("Photo is required"),
+      gender: Yup.string().required("Gender is required"),
+      address: Yup.string().required("Address is required"),
+      hobbies: Yup.string(),
+      date: Yup.date().required("Date is required"),
+    }),
+    onSubmit: async (values) => {
+      // Restructure the data before sending to addStudentApi
+      const hobbiesArray = values.hobbies
+        .split(",")
+        .map((hobby) => hobby.trim());
+      const formattedData = {
+        name: values.name,
+        age: values.age,
+        college: values.college,
+        photo: values.photo,
         personalData: {
-          ...studentData.personalData,
-          [name]: value,
-        },
-      });
-    } else if (name === "hobbies") {
-      const hobbiesArray = value.split(",").map((hobby) => hobby.trim());
-      setStudentData({
-        ...studentData,
-        personalData: {
-          ...studentData.personalData,
+          gender: values.gender,
+          address: values.address,
           hobbies: hobbiesArray,
         },
-      });
-    } else if (name === "interestedGames") {
-      const selectedGames = Array.from(e.target.selectedOptions, (option) =>
-        option.value
-      );
-      setStudentData({
-        ...studentData,
-        [name]: selectedGames,
-      });
-    } else {
-      setStudentData({
-        ...studentData,
-        [name]: value,
-      });
-    }
-  };
+        interestedGames: values.interestedGames,
+        date: values.date,
+      };
 
-  const handleGameSelection = (game) => {
-    const isGameSelected = studentData.interestedGames.includes(game);
-    const updatedGames = isGameSelected
-      ? studentData.interestedGames.filter((selectedGame) => selectedGame !== game)
-      : [...studentData.interestedGames, game];
+      console.log(formattedData);
 
-    setStudentData({
-      ...studentData,
-      interestedGames: updatedGames,
-    });
-  };
+      try {
+        const response = await addStudentApi(formattedData);
+        if (response.success) {
+          toast.success("Student data added successfully");
+          dispatch(addStudent(response.student));
+          formik.resetForm();
+          const fileInput = document.querySelector('input[type="file"]');
+          if (fileInput) {
+            fileInput.value = "";
+          }
+          setSelectedPhotoUrl("");
+        } else {
+          toast.error(response.message);
+        }
+      } catch (error) {
+        console.error("An error occurred while creating student:", error);
+        toast.error("An error occurred. Please try again later.");
+      }
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(studentData);
+  const addStudentApi = async (studentData) => {
     let formData = new FormData();
     formData.append("name", studentData.name);
     formData.append("age", studentData.age);
     formData.append("college", studentData.college);
     formData.append("photo", studentData.photo);
     formData.append("personalData", JSON.stringify(studentData.personalData));
-    formData.append("interestedGames", JSON.stringify(studentData.interestedGames));
+    formData.append(
+      "interestedGames",
+      JSON.stringify(studentData.interestedGames)
+    );
     formData.append("date", studentData.date);
 
     try {
@@ -126,48 +125,26 @@ const AddStudent = () => {
         }
       );
 
-      const addedStudent = await addedStudentResponse.json();
-
-      if (addedStudent.success) {
-        toast.success("Student data added Successfully");
-        addedStudent.student.college = { name: addedStudent.collegeName };
-        dispatch(addStudent(addedStudent.student));
-        setSelectedPhotoUrl("");
-        setStudentData({
-          name: "",
-          college: "",
-          age: "",
-          photo: null,
-          personalData: {
-            gender: "",
-            address: "",
-            hobbies: [],
-          },
-          date: "",
-          interestedGames: [],
-        });
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-          fileInput.value = "";
-        }
-      } else {
-        toast.error(addedStudent.message);
-      }
+      return await addedStudentResponse.json();
     } catch (error) {
       console.error("An error occurred while creating student:", error);
       toast.error("An error occurred. Please try again later.");
+      return {
+        success: false,
+        message: "An error occurred while creating the student.",
+      };
     }
   };
 
-  if(isLoggedIn === false){
-    toast.info("You need to Login first ")
-    navigate('/');    
+  if (!isLoggedIn) {
+    toast.info("You need to log in first");
+    navigate("/");
     return null;
   }
 
-  if (isSubscribed === false) {
+  if (!isSubscribed) {
     toast.info("You need to subscribe first");
-    navigate("/subscription");    
+    navigate("/subscription");
     return null;
   }
 
@@ -184,26 +161,42 @@ const AddStudent = () => {
       <div className="bg-gray-200 p-4 rounded-xl shadow-xl border">
         <h2 className="text-xl font-semibold mb-2">Student Information</h2>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form
+          onSubmit={formik.handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           <div className="mb-2">
-            <label className="block text-gray-600 text-base">Student Name:</label>
+            <label className="block text-gray-600 text-base">
+              Student Name:
+            </label>
             <input
               type="text"
               name="name"
-              value={studentData.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.name && formik.errors.name
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
+            {formik.touched.name && formik.errors.name && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
+            )}
           </div>
           <div className="mb-2">
-            <label className="block text-gray-600 text-base">College Name:</label>
+            <label className="block text-gray-600 text-base">
+              College Name:
+            </label>
             <select
               name="college"
-              value={studentData.college}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.college}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.college && formik.errors.college
+                  ? "border-red-500"
+                  : ""
+              }`}
             >
               <option value="">Select a College</option>
               {collegeOption.map((college) => (
@@ -212,26 +205,43 @@ const AddStudent = () => {
                 </option>
               ))}
             </select>
+            {formik.touched.college && formik.errors.college && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.college}
+              </p>
+            )}
           </div>
           <div className="mb-2">
             <label className="block text-gray-600 text-base">Age:</label>
             <input
               type="number"
               name="age"
-              value={studentData.age}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.age}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.age && formik.errors.age ? "border-red-500" : ""
+              }`}
             />
+            {formik.touched.age && formik.errors.age && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.age}</p>
+            )}
           </div>
           <div className="mb-2">
             <label className="block text-gray-600 text-base">Image:</label>
             <input
               type="file"
               name="photo"
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              onChange={(event) => {
+                formik.setFieldValue("photo", event.currentTarget.files[0]);
+                setSelectedPhotoUrl(
+                  URL.createObjectURL(event.currentTarget.files[0])
+                );
+              }}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.photo && formik.errors.photo
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
             {selectedPhotoUrl && (
               <div>
@@ -242,28 +252,47 @@ const AddStudent = () => {
                 />
               </div>
             )}
+            {formik.touched.photo && formik.errors.photo && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.photo}</p>
+            )}
           </div>
           <div className="mb-2">
             <label className="block text-gray-600 text-base">Gender:</label>
             <input
               type="text"
               name="gender"
-              value={studentData.personalData.gender}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.gender}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.gender && formik.errors.gender
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
+            {formik.touched.gender && formik.errors.gender && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.gender}
+              </p>
+            )}
           </div>
           <div className="mb-2">
             <label className="block text-gray-600 text-base">Address:</label>
             <input
               type="text"
               name="address"
-              value={studentData.personalData.address}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.address}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.address && formik.errors.address
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
+            {formik.touched.address && formik.errors.address && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.address}
+              </p>
+            )}
           </div>
           <div className="mb-2">
             <label className="block text-gray-600 text-base">
@@ -272,37 +301,34 @@ const AddStudent = () => {
             <input
               type="text"
               name="hobbies"
-              value={studentData.personalData.hobbies.join(", ")}
-              onChange={handleChange}
+              value={formik.values.hobbies}
+              onChange={formik.handleChange}
               className="w-full p-2 border rounded text-base"
-              required
             />
           </div>
           <div className="mb-2">
-            <label className="block text-gray-600 text-base">Interested Games:</label>
+            <label className="block text-gray-600 text-base">
+              Interested Games:
+            </label>
             <div className="space-y-2">
-              {[
-                "Cricket",
-                "Football",
-                "Hockey",
-                "Chess",
-                "Badminton",
-                // Add more game options here
-              ].map((game) => (
-                <div key={game}>
-                  <label className="flex items-center cursor-pointer text-base">
+              {["Cricket", "Football", "Hockey", "Chess", "Badminton"].map(
+                (game) => (
+                  <label
+                    key={game}
+                    className="flex items-center cursor-pointer text-base"
+                  >
                     <input
                       type="checkbox"
                       name="interestedGames"
                       value={game}
-                      checked={studentData.interestedGames.includes(game)}
-                      onChange={() => handleGameSelection(game)}
+                      checked={formik.values.interestedGames.includes(game)}
+                      onChange={formik.handleChange}
                       className="mr-2"
                     />
                     {game}
                   </label>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </div>
           <div className="mb-2">
@@ -310,11 +336,17 @@ const AddStudent = () => {
             <input
               type="date"
               name="date"
-              value={studentData.date}
-              onChange={handleChange}
-              className="w-full p-2 border rounded text-base"
-              required
+              value={formik.values.date}
+              onChange={formik.handleChange}
+              className={`w-full p-2 border rounded text-base ${
+                formik.touched.date && formik.errors.date
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
+            {formik.touched.date && formik.errors.date && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.date}</p>
+            )}
           </div>
           <button
             type="submit"

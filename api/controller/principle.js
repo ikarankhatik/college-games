@@ -7,11 +7,10 @@ const stripe = require("stripe")(
 );
 
 // sign up of the principle controller
-module.exports.signUp = async function (req, res) {
-  
+module.exports.signUp = async function (req, res) {  
     try {
       //finding principle into the data base
-      const principle = await Principle.findOne({ email: req.body.data.email });
+      const principle = await Principle.findOne({ email: req.body.email });
       //if principle is not present in the data base then only create the principle
       if (!principle) {
         const newPrinciple = await Principle.create(req.body);
@@ -19,12 +18,12 @@ module.exports.signUp = async function (req, res) {
         //sending the response to the database
         return res.json({
           success: true,
-          message: "principle created successfully",
+          message: "username created successfully",
         });
       } else {
         return res.json({
           success: false,
-          message: "principle with this email already exists",
+          message: "username with this email already exists",
         });
       }
     } catch (err) {
@@ -65,8 +64,11 @@ module.exports.signIn = async function (req, res) {
     });
     // Check if the customer already has a subscription
     if (subscriptions.data.length > 0) {
-      console.log("chal raha");
-       isSubcribe = true;
+      const subscriptionStatus = subscriptions.data[0].status; // Assuming there's only one subscription per customer
+
+      if (subscriptionStatus === 'active') {
+        isSubcribe = true;
+      }
     }
       // Create and send a JWT token for authentication
       const token = signToken(principle._id);

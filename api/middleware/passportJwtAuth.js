@@ -13,6 +13,7 @@ const opts = {
 
 passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {
+    console.log(jwt_payload.id,"pergopirjoghrthorthorthobrotbeoreoboerbore");
     try {
       const principle = await Principle.findById(jwt_payload.id);
 
