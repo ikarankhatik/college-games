@@ -1,70 +1,67 @@
-import React from "react";
+import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch, useSelector } from "react-redux";
+import { connect } from "react-redux";
 import { login } from "../store/principleSlice";
 import { subscribed, unsubscribed } from "../store/stripeSlice";
-import { useNavigate } from "react-router-dom";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import {Fetch} from "../helper/dbFetch";
+import { Fetch } from "../helper/dbFetch";
+// import withRouter from '../helper/withRouter'
+import { Navigate } from "react-router-dom"
 
-const Signin = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const isLoggedIn = useSelector((state) => state.principle.isLoggedIn);
-
-  // formik for handler for form submission
-  const formik = useFormik({
-    initialValues: {
+class Signin extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       email: "",
       password: "",
-    },
-    validationSchema: yup.object({
-      email: yup.string().required("Email is required").email("Invalid Email"),
-      password: yup.string().required("Password is required"),
-    }),
-    onSubmit: (values) => {
-      signInApi(values);
-    },
-  });
+    };
+  }
 
-  // fetching the signInApi
-  async function signInApi(data) {
+  handleInputChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+    const { email, password } = this.state;
+    const { dispatch } = this.props;
+
+    // Fetch the signInApi
     const path = "/api/principle/sign-in";
-    const response = await Fetch(path, data); // Assuming Fetch is defined and works correctly
-
-    console.log(response);
+    const response = await Fetch(path, { email, password });
 
     if (response.success) {
       toast.success("Login Successful");
       dispatch(login());
-
-      if (response.isSubscribed) { // Fix typo: isSubcribe should be isSubscribed
+      
+      console.log(response.isSubcribe);
+      if (response.isSubcribe) {
         dispatch(subscribed());
         console.log("User subscribed");
       } else {
-        dispatch(unsubscribed()); // Assuming you have an unsubscribed action in your stripeSlice
+        dispatch(unsubscribed());
       }
-
-      navigate("/student-list");
     } else {
       toast.error("Wrong credentials");
     }
-  }
+    return <Navigate to="/student-list" state={response.success}/>
+  };
 
-  if (isLoggedIn) {
-    navigate("/student-list");
-    return null;
-  }
+  render() {
+    const { isLoggedIn } = this.props;
 
-  return (
-    <>
+    if (isLoggedIn) {
+      return <Navigate to="/student-list" />
+      return null;
+    }
+
+    return (
       <div className="min-h-screen flex mt-20 justify-center">
         <div className="bg-gray-300 p-8 rounded-lg shadow-md w-[400px] h-[400px]">
           <h2 className="text-center text-2xl font-semibold mb-4">Sign In</h2>
-          <form onSubmit={formik.handleSubmit}>
+          <form onSubmit={this.handleSubmit}>
             <div className="mb-4">
               <label
                 className="block text-gray-700 text-sm font-bold mb-2"
@@ -77,13 +74,9 @@ const Signin = () => {
                 type="text"
                 id="email"
                 name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={this.state.email}
+                onChange={this.handleInputChange}
               />
-              {formik.touched.email && formik.errors.email && (
-                <div className="text-red-500">{formik.errors.email}</div>
-              )}
             </div>
             <div className="mb-4">
               <label
@@ -97,13 +90,9 @@ const Signin = () => {
                 type="password"
                 id="password"
                 name="password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={this.state.password}
+                onChange={this.handleInputChange}
               />
-              {formik.touched.password && formik.errors.password && (
-                <div className="text-red-500">{formik.errors.password}</div>
-              )}
             </div>
             <div className="text-center">
               <button
@@ -113,14 +102,16 @@ const Signin = () => {
                 Sign In
               </button>
             </div>
-            <div className="text-black font-bold text-center mt-5 hover:cursor-pointer">
-              <Link to="/students">Sign In as Guest?</Link>
-            </div>
+            <div className="text-black font-bold text-center mt-5 hover:cursor-pointer"></div>
           </form>
         </div>
       </div>
-    </>
-  );
-};
+    );
+  }
+}
 
-export default Signin;
+const mapStateToProps = (state) => ({
+  isLoggedIn: state.principle.isLoggedIn,
+});
+
+export default connect(mapStateToProps)(Signin);

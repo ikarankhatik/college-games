@@ -9,6 +9,7 @@ const stripeSlice = createSlice({
   reducers: {
     subscribed: (state, action) => {
       // Update the isSubscribed state to true when the user subscribed in
+      console.log("payment");
       state.isSubscribed = true;
     },
     unsubscribed: (state, action) => {

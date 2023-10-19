@@ -8,6 +8,7 @@ const principleSlice = createSlice({
   reducers: {
     login: (state, action) => {
       // Update the isLoggedIn state to true when the user logs in
+      console.log("hfigeeuei");
       state.isLoggedIn = true;
     },
     logout: (state, action) => {
